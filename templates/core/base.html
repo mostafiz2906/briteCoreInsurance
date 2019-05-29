@@ -1,0 +1,316 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+
+
+
+
+<html>
+<head>
+    <title>Sod | Home Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href='{% static "css/style.css" %}' rel="stylesheet" type="text/css">
+    <link href='{% static "css/bootstrap.min.css" %}' rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!--Slider Start-->
+    <link href='{% static "css/nivo-slider.css" %}' type="text/css" rel="stylesheet">
+    <link href='{% static "themes/bar/bar.css" %}' type="text/css" rel="stylesheet">
+    <link href='{% static "themes/dark/dark.css" %}' type="text/css" rel="stylesheet">
+    <link href='{% static "themes/default/default.css" %}' type="text/css" rel="stylesheet">
+    <link href='{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}' type="text/css" rel="stylesheet">
+    <script src= '{% static "js/jquery.nivo.slider.js" %}' type="text/javascript"></script>
+    <!--Slider End-->
+    <script src='{% static "js/jquery-1.12.1.min.js" %}' type="text/javascript"></script>
+
+</head>
+<body>
+<!--Header start-->
+
+
+<!--Header End-->
+
+
+<!--menu start 3-->
+
+
+<!---menu-End--->
+
+<!--menu end 3-->
+
+<!---Slider start--->
+
+
+
+
+<!---Slider End--->
+<!---Product view Start--->
+
+<div class="container-fluid">
+    <div class="prodact_view_div">
+
+
+        <div class="row">
+            {% block left_add %}
+
+
+            {% endblock %}
+
+
+
+            <div class="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                {% block product_list_title %}
+
+
+                {% endblock %}
+                {% block customer_detail %}
+
+
+                {% endblock %}
+
+
+
+
+                <div class="row">
+
+                    {% block product_list %}
+
+
+                    {% endblock %}
+
+
+
+                </div>
+            </div>
+
+            {% block cart_in_order %}
+
+            {% endblock %}
+
+            <!--Add Start Right-->
+            {% block right_add %}
+
+            {% endblock %}
+
+            <!--Add End-->
+
+
+        </div>
+        <hr>
+
+    </div>
+</div>
+
+<!---Product view End--->
+
+<!---pagination Start --->
+
+
+<!--Search icon End-->
+<!--Go TOP start -->
+
+
+<!--Left Icon bar End-->
+
+<!--modal Start-->
+
+
+
+<!--footer End -->
+
+
+
+<!--Help icon End-->
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip1"]').tooltip();
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip2"]').tooltip();
+    });
+</script>
+
+<!--search Start right icon-->
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var submitIcon = $('.searchbox-icon');
+        var inputBox = $('.searchbox-input');
+        var searchBox = $('.searchbox');
+        var isOpen = false;
+        submitIcon.click(function () {
+            if (isOpen == false) {
+                searchBox.addClass('searchbox-open');
+                inputBox.focus();
+                isOpen = true;
+            } else {
+                searchBox.removeClass('searchbox-open');
+                inputBox.focusout();
+                isOpen = false;
+            }
+        });
+        submitIcon.mouseup(function () {
+            return false;
+        });
+        searchBox.mouseup(function () {
+            return false;
+        });
+        $(document).mouseup(function () {
+            if (isOpen == true) {
+                $('.searchbox-icon').css('display', 'block');
+                submitIcon.click();
+            }
+        });
+    });
+    function buttonUp() {
+        var inputVal = $('.searchbox-input').val();
+        inputVal = $.trim(inputVal).length;
+        if (inputVal !== 0) {
+            $('.searchbox-icon').css('display', 'none');
+        } else {
+            $('.searchbox-input').val('');
+            $('.searchbox-icon').css('display', 'block');
+        }
+    }
+</script>
+
+<!--search right icon End -->
+
+
+
+
+
+<!--Right help button  start -->
+
+<script type="text/javascript">
+    $(".right-corder-container-button").hover(function () {
+        $(".long-text").addClass("show-long-text");
+    }, function () {
+        $(".long-text").removeClass("show-long-text");
+    });
+</script>
+
+<!--Right help button  End -->
+
+
+<!--back to top right icon start -->
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 50) {
+                $('#back-to-top').fadeIn();
+            } else {
+                $('#back-to-top').fadeOut();
+            }
+        });
+        // scroll body to 0px on click
+        $('#back-to-top').click(function () {
+            $('#back-to-top').tooltip('hide');
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+            return false;
+        });
+        $('#back-to-top').tooltip('show');
+    });
+</script>
+
+
+<!--back to top right icon End -->
+
+
+<!--Navbar start scroll top fixed -->
+
+<script type="text/javascript">
+    jQuery("document").ready(function ($) {
+        var nav = $('.amni');
+        $(window).scroll(function () {
+            if ($(this).scrollTop() > 136) {
+                nav.addClass("f-nav");
+            } else {
+                nav.removeClass("f-nav");
+            }
+        });
+    });
+</script>
+
+<!--Navbar End -->
+
+
+
+
+
+
+<!--menu start-->
+
+<script>
+    $(".amni .dropdown").hover(
+        function () {
+            $('.dropdown-menu', this).not('.in .dropdown-menu').stop(true, true).slideDown("400");
+            $(this).toggleClass('open');
+        },
+        function () {
+            $('.dropdown-menu', this).not('.in .dropdown-menu').stop(true, true).slideUp("400");
+            $(this).toggleClass('open');
+        }
+    );
+</script>
+
+<!--menu End-->
+
+
+<!--Slider start -->
+
+<script type="text/javascript">
+    $(window).load(function () {
+        $('#slider').nivoSlider();
+    });</script>
+
+
+<script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-36251023-1']);
+    _gaq.push(['_setDomainName', 'jqueryscript.net']);
+    _gaq.push(['_trackPageview']);
+    (function () {
+        var ga = document.createElement('script');
+        ga.type = 'text/javascript';
+        ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? '' : '') + '.';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(ga, s);
+    })();</script>
+
+<!--Slider End -->
+
+{% block javascript %}
+
+{% endblock %}
+
+<!--Slider End -->
+
+<script src='{% static "js/jquery-1.12.1.min.js" %}' type="text/javascript"></script>
+
+<script src='{% static "js/bootstrap.min.js" %}' type="text/javascript"></script>
+
+<script src='{% static "js/jquery.nivo.slider.js" %}' type="text/javascript"></script>
+
+</body>
+</html>

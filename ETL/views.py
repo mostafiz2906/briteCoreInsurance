@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 import pandas as pd
 from ETL.models import dim_product
+from .forms import DocumentForm
 from django.shortcuts import render
 
 # Create your views here.
@@ -118,3 +119,17 @@ def full_load(request):
 
     df_fact = create_fact('INSURANCE_FACT', base_df, df_vendor, df_state, df_product, fact_columns)
     #return render(request, 'home.html'
+
+
+
+def file_upload(request):
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return render(request, 'etl/file_upload.html')
+    else:
+        form = DocumentForm()
+    return render(request, 'etl/file_upload.html', {
+        'form': form
+    })
