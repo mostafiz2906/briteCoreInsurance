@@ -4,6 +4,8 @@ import pandas as pd
 from ETL.models import dim_product
 from .forms import DocumentForm
 from django.shortcuts import render
+from .etl import InitialLoad, DataframeOperation
+from django.conf import settings
 
 # Create your views here.
 
@@ -127,6 +129,11 @@ def file_upload(request):
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            media_root = settings.MEDIA_ROOT
+            df_op = DataframeOperation(media_root + '/' + request.FILES['document'].name)
+            base_df = df_op.get_dataframe_from_filepath()
+            full_load_etl = InitialLoad(base_df)
+            full_load_etl.full_load()
             return render(request, 'etl/file_upload.html')
     else:
         form = DocumentForm()
