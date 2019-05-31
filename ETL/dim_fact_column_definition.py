@@ -6,3 +6,5 @@ dim_agency_column = ['AGENCY_ID', 'AGENCY_APPOINTMENT_YEAR', 'ACTIVE_PRODUCERS',
 dim_vendor_column = ['VENDOR']
 dim_time_column = ['STAT_PROFILE_DATE_YEAR']
 dim_state_column = ['STATE_ABBR']
+dim_product_line_column = ['PROD_LINE']
+dim_product_column = ['PROD_ABBR']

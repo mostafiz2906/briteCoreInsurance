@@ -14,9 +14,6 @@ class input_file(models.Model):
     document = models.FileField()
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-class dim_product (models.Model):
-    product_id = models.IntegerField()
-    prod_abbr = models.CharField(max_length=100)
 
 class dim_primary_agency (models.Model):
     primary_agency_id = models.IntegerField()
@@ -45,3 +42,17 @@ class dim_time(models.Model):
 
 class dim_state(models.Model):
     state_abbr = models.CharField(max_length=5)
+
+class dim_product_line(models.Model):
+    prod_line = models.CharField(max_length=5)
+
+class dim_product(models.Model):
+    prod_abbr = models.CharField(max_length=30)
+
+class bridge_agency(models.Model):
+    agency_id = models.ForeignKey(dim_agency)
+    primary_agency_id = models.ForeignKey(dim_primary_agency)
+
+class bridge_product(models.Model):
+    product_line_id = models.ForeignKey(dim_product_line)
+    product_id = models.ForeignKey(dim_product)

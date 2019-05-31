@@ -83,6 +83,53 @@ class InitialLoad:
         ) for state in df_to_dict]
         dim_state.objects.bulk_create(d_state_instances)
 
+    def insert_dim_product_line(self, input_df):
+        df_to_dict = input_df.to_dict('records')
+        d_p_line_instances = [dim_product_line(
+            prod_line=pline['PROD_LINE'],
+        ) for pline in df_to_dict]
+        dim_product_line.objects.bulk_create(d_p_line_instances)
+
+    def insert_dim_product(self, input_df):
+        df_to_dict = input_df.to_dict('records')
+        product_instances = [dim_product(
+            prod_abbr=product['PROD_ABBR'],
+        ) for product in df_to_dict]
+        dim_product.objects.bulk_create(product_instances)
+
+    def insert_bridge_product(self):
+        column_from_base_df = self.base_df.loc[:, ['PROD_LINE', 'PROD_ABBR']]
+        df_product_line = pd.DataFrame(list(dim_product_line.objects.all().values()))
+        print df_product_line
+        df_product = pd.DataFrame(list(dim_product.objects.all().values()))
+        print df_product
+        df_bridge_product = pd.merge(
+            pd.merge(
+                column_from_base_df, df_product_line, left_on='PROD_LINE', right_on='prod_line', suffixes=('_BASE', '_PRODUCT_LINE')
+            ), df_product, left_on='PROD_ABBR', right_on='prod_abbr', suffixes=('_PRODUCT_LINE', '_PRODUCT')
+        )
+        unique_df_bridge_product =  df_bridge_product.loc[:,['id_PRODUCT_LINE','id_PRODUCT']].drop_duplicates()
+        bridge_product_instances = [dim_product(
+            product_line_id=row['id_PRODUCT_LINE'],
+            product_id=row['id_PRODUCT'],
+        )for index,row in unique_df_bridge_product.iterrows()]
+        bridge_product.objects.bulk_create(bridge_product_instances)
+
+    def insert_bridge_agency(self):
+        column_from_base_df = self.base_df.loc[:, ['AGENCY_ID', 'PRIMARY_AGENCY_ID']]
+        df_agency = pd.DataFrame(list(dim_agency.objects.all().values('id', 'agency_id')))
+        df_primary_agnecy = pd.DataFrame(list(dim_primary_agency.objects.all().values('id', 'primary_agency_id')))
+        df_bridge_agency = pd.merge(
+            pd.merge(
+                column_from_base_df, df_agency, left_on='AGENCY_ID', right_on='agency_id', suffixes=('_BASE', '_AGENCY')
+            ), df_primary_agnecy, left_on='PRIMARY_AGENCY_ID', right_on='primary_agency_id',  suffixes=('_AGENCY', '_PRIMARY_AGNECY')
+        )
+        unique_df_bridge_agency =  df_bridge_agency.loc[:, ['id_AGENCY', 'id_PRIMARY_AGNECY']].drop_duplicates()
+        bridge_agency_instances = [dim_product(
+            agency_id=row['id_AGENCY'],
+            primary_agency_id=row['id_PRIMARY_AGNECY'],
+        ) for index, row in unique_df_bridge_agency.iterrows()]
+        bridge_agency.objects.bulk_create(bridge_agency_instances)
 
     def full_load(self):
         dim_primary_agency_df = self.create_dimension_from_df( dim_primary_agency_column)
@@ -94,6 +141,15 @@ class InitialLoad:
         dim_time_df = self.create_dimension_from_df(dim_time_column)
         self.insert_dim_time(dim_time_df)
         dim_state_df = self.create_dimension_from_df(dim_state_column)
+        self.insert_dim_state(dim_state_df)
+        dim_product_line_df = self.create_dimension_from_df(dim_product_line_column)
+        self.insert_dim_product_line(dim_product_line_df)
+        dim_product_df = self.create_dimension_from_df(dim_product_column)
+        self.insert_dim_product(dim_product_df)
+        self.insert_bridge_product()
+        self.insert_bridge_agency()
+
+
 
 class DataframeOperation:
     file_path = ''
