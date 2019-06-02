@@ -1,0 +1,1 @@
+key_dim_product = ['PROD_ABBR']

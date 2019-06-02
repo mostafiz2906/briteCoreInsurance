@@ -1,7 +1,14 @@
 import pandas as pd
 from ETL.dim_fact_column_definition import *
+from .incremetal_key import *
 from .models import *
+import math
 
+
+def unique_rows_of_columns_from_dataframe(input_df,columns):
+    df_selected_column = pd.DataFrame(input_df, columns=columns)
+    df_unique = df_selected_column.drop_duplicates()
+    return df_unique
 
 class InitialLoad:
     base_df = pd.DataFrame()
@@ -18,12 +25,83 @@ class InitialLoad:
         df_unique = df_selected_column.drop_duplicates()
         return df_unique
 
+    def nan(self,num):
+        return num if math.isnan(num) else 99999
 
-    def create_bridge_table_from_df(dim_name, input_df, *columns):
-        df_selected_column = pd.DataFrame(input_df, columns=columns)
-        df_unique = df_selected_column.drop_duplicates()
-        return df_unique
-
+    def create_fact_(self):
+        df_agency = pd.DataFrame(list(dim_agency.objects.all().values('id', 'agency_id')))
+        df_vendor = pd.DataFrame(list(dim_vendor.objects.all().values('id', 'vendor')))
+        # map(unicode, df_vendor)
+        print type(df_vendor.vendor)
+        print type(self.base_df.VENDOR)
+        df_state = pd.DataFrame(list(dim_state.objects.all().values('id', 'state_abbr')))
+        df_product = pd.DataFrame(list(dim_product.objects.all().values('id', 'prod_abbr')))
+        df_time = pd.DataFrame(list(dim_time.objects.all().values('id', 'stat_profile_date_year')))
+        # print pd.merge(
+        #     pd.merge(
+        #         self.base_df, df_vendor, left_on='VENDOR', right_on='vendor', suffixes=('_BASE', '_VENDOR')
+        #     ),df_state,left_on='STATE_ABBR', right_on='state_abbr', suffixes=('_VENDOR', '_STATE')
+        # )
+        # df_fact = pd.merge(
+        #     pd.merge(
+        #         pd.merge(
+        #             pd.merge(
+        #                 pd.merge(
+        #                     self.base_df, df_vendor, left_on='VENDOR', right_on='vendor', suffixes=('_BASE', '_VENDOR')
+        #                 ), df_state, left_on='STATE_ABBR', right_on='state_abbr', suffixes=('_VENDOR', '_STATE')
+        #             ), df_product, left_on='PROD_ABBR', right_on='prod_abbr', suffixes=('', '_PRODUCT')
+        #         ), df_agency, left_on='AGENCY_ID', right_on='agency_id', suffixes=('', '_AGENCY')
+        #     ), df_time, left_on='STAT_PROFILE_DATE_YEAR', right_on='stat_profile_date_year', suffixes=('', '_TIME')
+        # )
+        # print df_fact
+        df_fact = pd.merge(
+            pd.merge(
+                pd.merge(
+                    pd.merge(
+                        pd.merge(
+                            self.base_df, df_vendor, left_on='VENDOR', right_on='vendor', suffixes=('_BASE', '_VENDOR')
+                        ), df_state, left_on='STATE_ABBR', right_on='state_abbr', suffixes=('_VENDOR', '_STATE')
+                    ), df_product, left_on='PROD_ABBR', right_on='prod_abbr', suffixes=('', '_PRODUCT')
+                ), df_agency, left_on='AGENCY_ID', right_on='agency_id', suffixes=('_PRODUCT', '')
+            ), df_time, left_on='STAT_PROFILE_DATE_YEAR', right_on='stat_profile_date_year', suffixes=('_AGENCY', '_TIME')
+        ).loc[:, fact_column]
+        # print df_fact
+        fact_instances = [fact_insurance(
+            agency_id=row['id_AGENCY'],
+            product_id=row['id_PRODUCT'],
+            state_id=row['id_STATE'],
+            vendor_id=row['id_VENDOR'],
+            time_id=row['id_TIME'],
+            retention_poly_qty=row['RETENTION_POLY_QTY'],
+            poly_inforce_qty=row['POLY_INFORCE_QTY'],
+            prev_poly_inforce_qty=row['PREV_POLY_INFORCE_QTY'],
+            nb_wrtn_prem_amnt=row['NB_WRTN_PREM_AMT'],
+            wrtn_prem_amnt=row['WRTN_PREM_AMT'],
+            prd_ernd_prem_amt=row['PRD_ERND_PREM_AMT'],
+            prd_incr_losses_amt=row['PRD_INCRD_LOSSES_AMT'],
+            months=row['MONTHS'],
+            retention_ratio=row['RETENTION_RATIO'],
+            loss_ratio=row['LOSS_RATIO'],
+            loss_ratio_3yr=row['LOSS_RATIO_3YR'],
+            growth_rate_3yr=row['GROWTH_RATE_3YR'],
+            cl_bound_ct_mds=row['CL_BOUND_CT_MDS'],
+            cl_quo_ct_mds=row['CL_QUO_CT_MDS'],
+            cl_bound_ct_sbz=row['CL_BOUND_CT_SBZ'],
+            cl_quo_ct_sbz=row['CL_QUO_CT_SBZ'],
+            cl_bound_ct_eqt=row['CL_BOUND_CT_eQT'],
+            cl_quo_ct_eqt=row['CL_QUO_CT_eQT'],
+            pl_bound_ct_elinks=row['PL_BOUND_CT_ELINKS'],
+            pl_quo_ct_elinks=row['PL_QUO_CT_ELINKS'],
+            pl_bound_ct_plrank=row['PL_BOUND_CT_PLRANK'],
+            pl_quo_ct_plrank=row['PL_QUO_CT_PLRANK'],
+            pl_bound_ct_eqtte=row['PL_BOUND_CT_eQTte'],
+            pl_quo_ct_eqtte=row['PL_QUO_CT_eQTte'],
+            pl_bound_ct_applied=row['PL_BOUND_CT_APPLIED'],
+            pl_quo_ct_applied=row['PL_QUO_CT_APPLIED'],
+            pl_bound_ct_transactnow=row['PL_BOUND_CT_TRANSACTNOW'],
+            pl_quo_ct_transactnow=row['PL_QUO_CT_TRANSACTNOW'],
+        ) for index, row in df_fact.iterrows()]
+        fact_insurance.objects.bulk_create(fact_instances)
 
     def create_fact(fact_name, input_base_df, input_df_vendor, input_df_state, input_df_product, df_column):
         df_fact_out = pd.merge(
@@ -100,17 +178,15 @@ class InitialLoad:
     def insert_bridge_product(self):
         column_from_base_df = self.base_df.loc[:, ['PROD_LINE', 'PROD_ABBR']]
         df_product_line = pd.DataFrame(list(dim_product_line.objects.all().values()))
-        print df_product_line
         df_product = pd.DataFrame(list(dim_product.objects.all().values()))
-        print df_product
         df_bridge_product = pd.merge(
             pd.merge(
                 column_from_base_df, df_product_line, left_on='PROD_LINE', right_on='prod_line', suffixes=('_BASE', '_PRODUCT_LINE')
             ), df_product, left_on='PROD_ABBR', right_on='prod_abbr', suffixes=('_PRODUCT_LINE', '_PRODUCT')
         )
         unique_df_bridge_product =  df_bridge_product.loc[:,['id_PRODUCT_LINE','id_PRODUCT']].drop_duplicates()
-        bridge_product_instances = [dim_product(
-            product_line_id=row['id_PRODUCT_LINE'],
+        bridge_product_instances = [bridge_product(
+            product_line_id= row['id_PRODUCT_LINE'],
             product_id=row['id_PRODUCT'],
         )for index,row in unique_df_bridge_product.iterrows()]
         bridge_product.objects.bulk_create(bridge_product_instances)
@@ -122,10 +198,10 @@ class InitialLoad:
         df_bridge_agency = pd.merge(
             pd.merge(
                 column_from_base_df, df_agency, left_on='AGENCY_ID', right_on='agency_id', suffixes=('_BASE', '_AGENCY')
-            ), df_primary_agnecy, left_on='PRIMARY_AGENCY_ID', right_on='primary_agency_id',  suffixes=('_AGENCY', '_PRIMARY_AGNECY')
+            ), df_primary_agnecy, left_on='PRIMARY_AGENCY_ID', right_on='primary_agency_id', suffixes=('_AGENCY', '_PRIMARY_AGNECY')
         )
         unique_df_bridge_agency =  df_bridge_agency.loc[:, ['id_AGENCY', 'id_PRIMARY_AGNECY']].drop_duplicates()
-        bridge_agency_instances = [dim_product(
+        bridge_agency_instances = [bridge_agency(
             agency_id=row['id_AGENCY'],
             primary_agency_id=row['id_PRIMARY_AGNECY'],
         ) for index, row in unique_df_bridge_agency.iterrows()]
@@ -148,6 +224,7 @@ class InitialLoad:
         self.insert_dim_product(dim_product_df)
         self.insert_bridge_product()
         self.insert_bridge_agency()
+        self.create_fact_()
 
 
 
@@ -159,4 +236,33 @@ class DataframeOperation:
 
     def get_dataframe_from_filepath(self):
         return pd.read_csv(self.file_path)
+
+    def diff_two_dataframe(self,df1,df2):
+        return pd.concat([df2, df1, df1]).drop_duplicates(keep=False)
+
+
+def diff_two_dataframe(df1, df2):
+    return pd.concat([df2, df1, df1]).drop_duplicates(keep=False)
+
+class IncrementalLoad:
+    delta_df = pd.DataFrame()
+
+    # default constructor
+    def __init__(self, input_df):
+        self.delta_df = input_df
+
+    def inc_dim_product(self,input_df):
+        org_df_product = pd.DataFrame(list(dim_product.objects.all().values('PROD_ABBR')))
+        delta_insert_df = diff_two_dataframe(org_df_product,input_df)
+        print "insert delta"
+        print delta_insert_df
+
+    def incremental(self):
+        delta_df_product = unique_rows_of_columns_from_dataframe(self.delta_df,key_dim_product)
+        print "unique delta"
+        print delta_df_product
+        self.inc_dim_product(delta_df_product)
+
+
+
 
